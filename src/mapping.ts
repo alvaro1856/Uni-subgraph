@@ -1,81 +1,49 @@
 import { BigInt } from "@graphprotocol/graph-ts"
+import { Bytes } from "@graphprotocol/graph-ts"
+import {
+  Delegate,
+  User
+} from "../generated/schema"
+
 import {
   Uni,
-  Approval,
   DelegateChanged,
   DelegateVotesChanged,
-  MinterChanged,
   Transfer
 } from "../generated/Uni/Uni"
-import { ExampleEntity } from "../generated/schema"
 
-export function handleApproval(event: Approval): void {
-  // Entities can be loaded from the store using a string ID; this ID
-  // needs to be unique across all entities of the same type
-  let entity = ExampleEntity.load(event.transaction.from.toHex())
 
-  // Entities only exist after they have been saved to the store;
-  // `null` checks allow to create entities on demand
-  if (!entity) {
-    entity = new ExampleEntity(event.transaction.from.toHex())
 
-    // Entity fields can be set using simple assignments
-    entity.count = BigInt.fromI32(0)
-  }
+export function handleDelegateChanged(event: DelegateChanged): void {
+  let id = event.transaction.hash.toHex()
+  let delegate = new Delegate(id)
 
-  // BigInt and BigDecimal math are supported
-  entity.count = entity.count + BigInt.fromI32(1)
-
-  // Entity fields can be set based on event parameters
-  entity.owner = event.params.owner
-  entity.spender = event.params.spender
-
-  // Entities can be written to the store with `.save()`
-  entity.save()
-
-  // Note: If a handler doesn't require existing field values, it is faster
-  // _not_ to load the entity from the store. Instead, create it fresh with
-  // `new Entity(...)`, set the fields that should be updated and save the
-  // entity back to the store. Fields that were not set or unset remain
-  // unchanged, allowing for partial updates to be applied.
-
-  // It is also possible to access smart contracts from mappings. For
-  // example, the contract that has emitted the event can be connected to
-  // with:
-  //
-  // let contract = Contract.bind(event.address)
-  //
-  // The following functions can then be called on this contract to access
-  // state variables and other data:
-  //
-  // - contract.DELEGATION_TYPEHASH(...)
-  // - contract.DOMAIN_TYPEHASH(...)
-  // - contract.PERMIT_TYPEHASH(...)
-  // - contract.allowance(...)
-  // - contract.approve(...)
-  // - contract.balanceOf(...)
-  // - contract.checkpoints(...)
-  // - contract.decimals(...)
-  // - contract.delegates(...)
-  // - contract.getCurrentVotes(...)
-  // - contract.getPriorVotes(...)
-  // - contract.minimumTimeBetweenMints(...)
-  // - contract.mintCap(...)
-  // - contract.minter(...)
-  // - contract.mintingAllowedAfter(...)
-  // - contract.name(...)
-  // - contract.nonces(...)
-  // - contract.numCheckpoints(...)
-  // - contract.symbol(...)
-  // - contract.totalSupply(...)
-  // - contract.transfer(...)
-  // - contract.transferFrom(...)
+  delegate.delegator = event.params.delegator
+  delegate.fromDelegate = event.params.fromDelegate
+  delegate.toDelegate = event.params.toDelegate
+  delegate.save()
 }
 
-export function handleDelegateChanged(event: DelegateChanged): void {}
+export function handleDelegateVotesChanged(event: DelegateVotesChanged): void {
+  let id = event.transaction.hash.toHex()
+  let delegate = Delegate.load(id)
+  if (delegate == null) {
+    delegate = new Delegate(id)
+  }
+   
+  delegate.previousBalance = event.params.previousBalance
+  delegate.newBalance = event.params.newBalance
+  delegate.save()
+}
 
-export function handleDelegateVotesChanged(event: DelegateVotesChanged): void {}
-
-export function handleMinterChanged(event: MinterChanged): void {}
-
-export function handleTransfer(event: Transfer): void {}
+export function handleTransfer(event: Transfer): void {
+  let id = event.transaction.hash.toHex()
+  let user = new User(id)
+  if (user == null) {
+    user = new User(id)
+  }
+  user.to = event.params.to
+  user.from = event.params.from
+  user.amount = event.params.amount
+  user.save()
+}

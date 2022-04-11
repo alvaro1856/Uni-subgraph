@@ -1,6 +1,15 @@
-type ExampleEntity @entity {
+type Delegate @entity {
   id: ID!
-  count: BigInt!
-  owner: Bytes! # address
-  spender: Bytes! # address
+  delegator: Bytes!
+  fromDelegate: Bytes!
+  toDelegate: Bytes!
+  previousBalance: BigInt!
+  newBalance: BigInt!
+}
+
+type User @entity {
+  id: ID!
+  to: Bytes!
+  from: Bytes!
+  amount: BigInt!
 }
